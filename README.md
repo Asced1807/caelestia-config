@@ -11,14 +11,24 @@ jugar y dos parches de QML.
 
 ## Instalar
 
-Necesitas **Caelestia ya funcionando** sobre Hyprland, más `patch` y `python3`
-(los trae cualquier Arch de serie). El script no instala Caelestia.
-
 ```bash
 git clone https://github.com/Asced1807/caelestia-config.git
 cd caelestia-config
 ./install.sh
 ```
+
+**Si te falta algo, te lo instala.** Comprueba Caelestia (`caelestia-shell` y
+`caelestia-cli` del AUR), `patch` y `python3`, y te pregunta antes de tocar
+nada. Si no tienes `yay` ni `paru`, también se ofrece a poner `yay`. Con `-y`
+no pregunta:
+
+```bash
+./install.sh -y
+```
+
+Al terminar hace una comprobación pieza por pieza —config, overlay, parches y
+que los `.lua` parsean— y te la enseña con `[ok]` o `[FALLA]`. Si algo falla,
+sale con error en vez de decirte que todo fue bien.
 
 Todo lo que pisa lleva copia `.bak-<fecha>` al lado. Y se puede repetir cuantas
 veces quieras — de hecho **hay que repetirlo después de cada actualización de
