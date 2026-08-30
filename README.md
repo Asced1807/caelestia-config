@@ -11,7 +11,8 @@ jugar y dos parches de QML.
 
 ## Instalar
 
-Necesitas **Caelestia ya funcionando** sobre Hyprland. El script no la instala.
+Necesitas **Caelestia ya funcionando** sobre Hyprland, más `patch` y `python3`
+(los trae cualquier Arch de serie). El script no instala Caelestia.
 
 ```bash
 git clone https://github.com/Asced1807/caelestia-config.git
@@ -88,7 +89,7 @@ tal cual. Borra las líneas que no te sirvan.
   que dependen de esos módulos se quedan fuera para no romperte la barra.
 - **El Game Launcher** y los scripts (watchdog, modo juego, bandeja).
 - **El theming de Nemo y kitty**: eso vive en
-  [skwd-wall-setup](https://github.com/Asced1807/skwd-wall-setup#colores-que-siguen-al-fondo).
+  [skwd-wall-setup](https://github.com/Asced1807/skwd-wall-setup#colores-que-siguen-al-fondo-opcional).
 
 ## Desinstalar
 
