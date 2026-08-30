@@ -1,0 +1,39 @@
+--- /etc/xdg/quickshell/caelestia/modules/Shortcuts.qml	2026-08-12 18:39:03.000000000 -0400
++++ modules/Shortcuts.qml	2026-07-17 21:24:23.151580590 -0400
+@@ -10,6 +10,12 @@
+     id: root
+ 
+     property bool launcherInterrupted
++    // Workaround regresión Hyprland 0.55 (hyprwm/Hyprland#15063): el bind catchall
++    // dispara launcherInterrupt también con el propio press de Super_L (llega <5ms
++    // tras el press del launcher). Un interrupt real (otra tecla con Super pulsado)
++    // siempre llega bastante después, así que se ignoran los casi-simultáneos.
++    // Revertir (restaurar symlink a /etc/xdg) cuando Hyprland arregle la regresión.
++    property real launcherPressedAt: 0
+     readonly property bool hasFullscreen: Hypr.focusedWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false
+ 
+     // qmllint disable unresolved-type
+@@ -64,7 +70,10 @@
+         // qmllint enable unresolved-type
+         name: "launcher"
+         description: "Toggle launcher"
+-        onPressed: root.launcherInterrupted = false
++        onPressed: {
++            root.launcherInterrupted = false;
++            root.launcherPressedAt = Date.now();
++        }
+         onReleased: {
+             if (!root.launcherInterrupted && !root.hasFullscreen) {
+                 const screenState = ShellState.forActive();
+@@ -79,7 +88,10 @@
+         // qmllint enable unresolved-type
+         name: "launcherInterrupt"
+         description: "Interrupt launcher keybind"
+-        onPressed: root.launcherInterrupted = true
++        onPressed: {
++            if (Date.now() - root.launcherPressedAt > 30)
++                root.launcherInterrupted = true;
++        }
+     }
+ 
+     // qmllint disable unresolved-type

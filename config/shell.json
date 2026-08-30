@@ -1,0 +1,49 @@
+{
+    "appearance": {
+        "transparency": {
+            "enabled": false
+        }
+    },
+    "bar": {
+        "workspaces": {
+            "activeIndicator": true,
+            "activeLabel": "󰮯",
+            "capitalisation": "Preserve",
+            "displayType": "Text",
+            "label": "·",
+            "occupiedBg": false,
+            "occupiedLabel": "󰊠",
+            "perMonitorWorkspaces": false,
+            "showWindows": true,
+            "showWindowsOnSpecialWorkspaces": false,
+            "shown": 5
+        }
+    },
+    "general": {
+        "apps": {
+            "explorer": [
+                "nemo"
+            ]
+        }
+    },
+    "session": {
+        "commands": {
+            "hibernate": [
+                "systemctl",
+                "hibernate"
+            ],
+            "logout": [
+                "uwsm",
+                "stop"
+            ],
+            "reboot": [
+                "systemctl",
+                "reboot"
+            ],
+            "shutdown": [
+                "systemctl",
+                "poweroff"
+            ]
+        }
+    }
+}

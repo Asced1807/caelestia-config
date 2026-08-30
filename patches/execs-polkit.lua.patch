@@ -1,0 +1,14 @@
+diff --git a/hypr/hyprland/execs.lua b/hypr/hyprland/execs.lua
+index 858b592..b0f3963 100644
+--- a/hypr/hyprland/execs.lua
++++ b/hypr/hyprland/execs.lua
+@@ -4,7 +4,8 @@ local fn   = require("utils.functions")
+ hl.on("hyprland.start", function()
+     -- Keyring and auth
+     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
+-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
++    -- PARCHE LOCAL: polkit-gnome no está instalado, usamos hyprpolkitagent
++    hl.exec_cmd("systemctl --user start hyprpolkitagent.service")
+ 
+     -- Clipboard history
+     hl.exec_cmd("wl-paste --type text --watch cliphist store")
