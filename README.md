@@ -106,7 +106,7 @@ tal cual. Borra las líneas que no te sirvan.
 ```bash
 rm ~/.config/caelestia/{shell.json,hypr-user.lua,hypr-vars.lua}
 rm -rf ~/.config/quickshell/caelestia
-systemctl --user restart caelestia-shell.service
+caelestia shell -d   # relanzar la shell (o reinicia tu servicio, si lo tienes)
 ```
 
 Vuelve todo al comportamiento de serie. Tus `.bak-<fecha>` siguen donde estaban.

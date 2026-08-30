@@ -236,10 +236,12 @@ fi
 
 # ------------------------------------------------------------ 6. Recargar
 echo
-if systemctl --user is-active --quiet caelestia-shell.service; then
+# El paquete de Caelestia NO trae unit de systemd: la shell se lanza con
+# 'caelestia shell -d'. Solo hay servicio si te lo has hecho tu.
+if systemctl --user cat caelestia-shell.service >/dev/null 2>&1; then
   c_warn "Para ver los cambios:  systemctl --user restart caelestia-shell.service"
 else
-  c_warn "Para ver los cambios reinicia la shell de Caelestia."
+  c_warn "Para ver los cambios reinicia la shell:  caelestia shell -d"
 fi
 c_warn "Y recuerda: vuelve a ejecutar este script despues de cada"
 c_warn "actualizacion de caelestia-shell (los QML parcheados se regeneran)."
