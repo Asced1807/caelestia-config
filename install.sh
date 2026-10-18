@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Mis ajustes sobre una instalacion de Caelestia ya existente.
+# Mis ajustes sobre una instalacion de Caelestia.
 #
-# No instala Caelestia ni Hyprland: los da por hechos y solo escribe encima
-# lo mio, siempre con copia de seguridad. Idempotente: se puede (y se debe)
+# Si falta Caelestia (o patch/python3) la instala, previa confirmacion; Hyprland
+# lo da por hecho. Escribe encima lo mio, siempre con copia de seguridad.
+# Idempotente: se puede (y se debe)
 # volver a ejecutar despues de cada actualizacion de caelestia-shell, porque
 # los QML parcheados hay que regenerarlos sobre el nuevo original.
 set -euo pipefail
@@ -32,7 +33,13 @@ copia_con_backup() {
 # AUTO_YES=1 (o -y) instala lo que falte sin preguntar. Sin terminal
 # interactiva se asume que no: no se instala nada a escondidas.
 AUTO_YES="${AUTO_YES:-}"
-case "${1:-}" in -y|--yes) AUTO_YES=1 ;; esac
+for arg in "$@"; do
+  case "$arg" in
+    -y|--yes)  AUTO_YES=1 ;;
+    -h|--help) echo "Uso: $0 [-y|--yes]   (-y instala lo que falte sin preguntar)"; exit 0 ;;
+    *)         c_err "Opcion desconocida: $arg (usa -h)"; exit 2 ;;
+  esac
+done
 
 confirmar() {
   [ -n "$AUTO_YES" ] && return 0
@@ -174,6 +181,7 @@ c_ok "Overlay: $enlazados enlaces nuevos, $rotos rotos eliminados."
 # vieja (eso es lo que rompe el arranque de la shell).
 aplicados=0
 fallidos=0
+omitidos=()
 
 aplicar_parche() {
   local patch_file="$1" rel="$2"
@@ -181,6 +189,14 @@ aplicar_parche() {
 
   if [ ! -f "$orig" ]; then
     c_warn "Upstream ya no trae $rel: parche omitido."
+    # Una copia parcheada de un archivo que ya no existe se quedaria cargando
+    # codigo viejo: fuera, con backup.
+    if [ -f "$dst" ] && [ ! -L "$dst" ]; then
+      mv "$dst" "$dst.bak-$STAMP"
+      c_warn "Tu copia anterior queda en $(basename "$dst").bak-$STAMP"
+    fi
+    fallidos=$((fallidos + 1))
+    omitidos+=("$rel")
     return 0
   fi
 
@@ -198,6 +214,7 @@ aplicar_parche() {
     fi
     ln -sfn "$orig" "$dst"
     fallidos=$((fallidos + 1))
+    omitidos+=("$rel")
     return 0
   fi
 
@@ -248,32 +265,51 @@ c_warn "actualizacion de caelestia-shell (los QML parcheados se regeneran)."
 
 # ------------------------------------------------------- 7. Comprobacion
 fallos=0
+# check "descripcion" comando [args...]: el comando va tal cual, sin eval, para
+# que una ruta con comillas o espacios no rompa la comprobacion.
 check() {
-  if eval "$2" >/dev/null 2>&1; then
-    printf '    \033[1;32m[ok]\033[0m   %s\n' "$1"
+  local desc="$1"; shift
+  if "$@" >/dev/null 2>&1; then
+    printf '    \033[1;32m[ok]\033[0m   %s\n' "$desc"
   else
-    printf '    \033[1;31m[FALLA]\033[0m %s\n' "$1"
+    printf '    \033[1;31m[FALLA]\033[0m %s\n' "$desc"
     fallos=$((fallos + 1))
   fi
 }
+
+# Un parche que ya no aplica no es un fallo de la instalacion: la shell queda
+# de serie en ese punto. Se avisa en vez de comprobarlo.
+check_parche() {
+  local desc="$1" rel="$2" patron="$3" r
+  for r in "${omitidos[@]}"; do
+    if [ "$r" = "$rel" ]; then
+      printf '    \033[1;33m[aviso]\033[0m %s (omitido: no aplica sobre esta version)\n' "$desc"
+      return 0
+    fi
+  done
+  check "$desc" grep -q -- "$patron" "$OVERLAY/$rel"
+}
+
+json_valido() { python3 -c 'import json, sys; json.load(open(sys.argv[1]))' "$1"; }
+sin_enlaces_rotos() { [ -z "$(find "$OVERLAY" -xtype l -print -quit)" ]; }
 
 echo
 echo "------------------------------------------------------------------"
 echo "  COMPROBACION"
 echo "------------------------------------------------------------------"
-check "shell.json en su sitio"        "[ -s '$CAE_DIR/shell.json' ]"
-check "shell.json es JSON valido"     "python3 -c \"import json;json.load(open('$CAE_DIR/shell.json'))\""
-check "cli.json es JSON valido"       "python3 -c \"import json;json.load(open('$CAE_DIR/cli.json'))\""
-check "hypr-user.lua en su sitio"     "[ -s '$CAE_DIR/hypr-user.lua' ]"
-check "hypr-vars.lua en su sitio"     "[ -s '$CAE_DIR/hypr-vars.lua' ]"
-check "overlay montado"               "[ -d '$OVERLAY/modules' ]"
-check "sin enlaces rotos en el overlay" "[ -z \"\$(find '$OVERLAY' -xtype l -print -quit)\" ]"
-check "parche del launcher aplicado"  "grep -q launcherPressedAt '$OVERLAY/modules/Shortcuts.qml'"
-check "popout de ethernet aplicado"   "grep -q '\"ethernet\"' '$OVERLAY/modules/bar/popouts/Content.qml'"
+check "shell.json en su sitio"          test -s "$CAE_DIR/shell.json"
+check "shell.json es JSON valido"       json_valido "$CAE_DIR/shell.json"
+check "cli.json es JSON valido"         json_valido "$CAE_DIR/cli.json"
+check "hypr-user.lua en su sitio"       test -s "$CAE_DIR/hypr-user.lua"
+check "hypr-vars.lua en su sitio"       test -s "$CAE_DIR/hypr-vars.lua"
+check "overlay montado"                 test -d "$OVERLAY/modules"
+check "sin enlaces rotos en el overlay" sin_enlaces_rotos
+check_parche "parche del launcher aplicado" "modules/Shortcuts.qml"            launcherPressedAt
+check_parche "popout de ethernet aplicado"  "modules/bar/popouts/Content.qml"  '"ethernet"'
 
 if command -v luac >/dev/null 2>&1; then
-  check "hypr-user.lua parsea"        "luac -p '$CAE_DIR/hypr-user.lua'"
-  check "hypr-vars.lua parsea"        "luac -p '$CAE_DIR/hypr-vars.lua'"
+  check "hypr-user.lua parsea"          luac -p "$CAE_DIR/hypr-user.lua"
+  check "hypr-vars.lua parsea"          luac -p "$CAE_DIR/hypr-vars.lua"
 fi
 
 echo "------------------------------------------------------------------"
