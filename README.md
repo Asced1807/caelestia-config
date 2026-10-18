@@ -28,7 +28,9 @@ no pregunta:
 
 Al terminar hace una comprobación pieza por pieza —config, overlay, parches y
 que los `.lua` parsean— y te la enseña con `[ok]` o `[FALLA]`. Si algo falla,
-sale con error en vez de decirte que todo fue bien.
+sale con error en vez de decirte que todo fue bien. Un parche que ya no aplica
+sobre tu versión de Caelestia sale como `[aviso]`: ese archivo se queda de
+serie y lo demás sigue instalado.
 
 Todo lo que pisa lleva copia `.bak-<fecha>` al lado. Y se puede repetir cuantas
 veces quieras — de hecho **hay que repetirlo después de cada actualización de
@@ -66,7 +68,8 @@ izquierda y deja una franja de escritorio a la derecha).
 [hyprwm/Hyprland#15063](https://github.com/hyprwm/Hyprland/issues/15063): desde
 0.55 el bind *catchall* dispara también con el propio `Super_L` del launcher, así
 que el launcher se cerraba solo. Ignora los eventos que llegan a menos de 30 ms.
-**Quítalo cuando Hyprland lo arregle.**
+El issue se cerró como *not planned*, así que el parche sigue siendo necesario
+(comprobado con Hyprland 0.56.2 y caelestia-shell 2.5.0).
 
 **`Content.qml.patch`** — añade el popout de **ethernet**, que la barra no expone
 aunque su propio `Network.qml` ya lo soporta (`view: "ethernet"`).
@@ -110,6 +113,12 @@ caelestia shell -d   # relanzar la shell (o reinicia tu servicio, si lo tienes)
 ```
 
 Vuelve todo al comportamiento de serie. Tus `.bak-<fecha>` siguen donde estaban.
+
+Si se aplicó el parche de polkit, deshazlo con:
+
+```bash
+patch -R -p1 -d ~/.local/share/caelestia < patches/execs-polkit.lua.patch
+```
 
 ## Licencia
 

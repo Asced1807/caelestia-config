@@ -1,6 +1,6 @@
---- /etc/xdg/quickshell/caelestia/modules/bar/popouts/Content.qml	2026-08-12 18:39:03.000000000 -0400
-+++ modules/bar/popouts/Content.qml	2026-08-12 18:52:57.426905822 -0400
-@@ -42,6 +42,14 @@
+--- /etc/xdg/quickshell/caelestia/modules/bar/popouts/Content.qml
++++ modules/bar/popouts/Content.qml
+@@ -47,6 +47,14 @@
          }
  
          Popout {
